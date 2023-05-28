@@ -1,0 +1,123 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
+public class FlappyBird extends JFrame {
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 600;
+    
+    private int birdY;
+    private int velocity;
+    private int score;
+    private boolean gameOver;
+    
+    private Timer timer;
+    
+    public FlappyBird() {
+        setTitle("Flappy Bird");
+        setSize(WIDTH, HEIGHT);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setResizable(false);
+        setLocationRelativeTo(null);
+        
+        birdY = HEIGHT / 2;
+        velocity = 0;
+        score = 0;
+        gameOver = false;
+        
+        addKeyListener(new BirdController());
+        add(new GamePanel());
+        
+        timer = new Timer(20, new GameLoop());
+        timer.start();
+        
+        setVisible(true);
+    }
+    
+    private void updateGame() {
+        if (!gameOver) {
+            birdY += velocity;
+            velocity += 1;
+            
+            if (birdY < 0 || birdY > HEIGHT) {
+                gameOver = true;
+            }
+            
+            // Update score
+            score++;
+        }
+    }
+    
+    private class BirdController extends KeyAdapter {
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+                if (gameOver) {
+                    birdY = HEIGHT / 2;
+                    velocity = 0;
+                    score = 0;
+                    gameOver = false;
+                }
+                
+                velocity = -10;
+            }
+        }
+    }
+    
+    private class GameLoop implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            updateGame();
+            repaint();
+        }
+    }
+    
+    private class GamePanel extends JPanel {
+        private static final int PIPE_WIDTH = 100;
+        private static final int PIPE_HEIGHT = 300;
+        private static final int PIPE_GAP = 200;
+        private static final int PIPE_SPEED = 5;
+        private static final int GROUND_HEIGHT = 100;
+        
+        private int pipeX;
+        
+        public GamePanel() {
+            pipeX = WIDTH;
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            
+            // Draw background
+            g.setColor(Color.CYAN);
+            g.fillRect(0, 0, WIDTH, HEIGHT);
+            
+            // Draw bird
+            g.setColor(Color.YELLOW);
+            g.fillOval(100, birdY, 50, 50);
+            
+            // Draw pipes
+            g.setColor(Color.GREEN);
+            g.fillRect(pipeX, 0, PIPE_WIDTH, PIPE_HEIGHT);
+            g.fillRect(pipeX, PIPE_HEIGHT + PIPE_GAP, PIPE_WIDTH, HEIGHT - PIPE_HEIGHT - PIPE_GAP - GROUND_HEIGHT);
+            
+            // Draw ground
+            g.setColor(Color.ORANGE);
+            g.fillRect(0, HEIGHT - GROUND_HEIGHT, WIDTH, GROUND_HEIGHT);
+            
+            // Draw score
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Arial", Font.BOLD, 20));
+            g.drawString("Score: " + score, 20, 30);
+            
+            if (gameOver) {
+                g.drawString("Game Over!", WIDTH / 2 - 50, HEIGHT / 2);
+            }
+        }
+    }
+    
+    public static void main(String[] args) {
+        new FlappyBird();
+    }
+}
